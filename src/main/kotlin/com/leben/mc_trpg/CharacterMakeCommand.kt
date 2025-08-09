@@ -1,6 +1,5 @@
 package com.leben.mc_trpg
 
-import com.leben.mc_trpg.Mc_trpg
 import com.leben.mc_trpg.data.CharacterStat
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -31,7 +30,7 @@ class CharacterMakeCommand : CommandExecutor {
         )
 
         // StatManager를 통해 스탯 저장
-        Mc_trpg.statManager.saveStat(sender, playerStat)
+        TRPGPlugin.statManager.saveStat(sender, playerStat)
 
         sender.sendMessage("§a[캐릭터 생성]§f 스탯이 무작위로 결정되었습니다!")
         sender.sendMessage("§f힘: §e${playerStat.strength}, §f민첩: §e${playerStat.dexterity}, §f지능: §e${playerStat.intelligence}")

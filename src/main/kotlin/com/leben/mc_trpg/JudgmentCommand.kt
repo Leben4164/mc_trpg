@@ -4,9 +4,7 @@ import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
 import kotlin.random.Random
-import com.leben.mc_trpg.data.CharacterStat
 
 class JudgmentCommand : CommandExecutor {
     override fun onCommand(
@@ -78,7 +76,7 @@ class JudgmentCommand : CommandExecutor {
         messages.add("§f - 최종 결과: §e$finalResult")
 
         // 메인 클래스의 함수를 호출하여 메시지를 시간 간격을 두고 전송
-        Mc_trpg.instance.sendDelayedMessages(messages, 1000L) // 1초 간격으로 메시지 전송
+        TRPGPlugin.instance.sendDelayedMessages(messages, 1000L) // 1초 간격으로 메시지 전송
 
 
         return true
@@ -86,7 +84,7 @@ class JudgmentCommand : CommandExecutor {
 
     // 플레이어 스탯을 가져오는 더미 함수
     private fun getPlayerStat(player: org.bukkit.entity.Player, statName: String): Int? {
-        val stat = Mc_trpg.statManager.getStat(player)
+        val stat = TRPGPlugin.statManager.getStat(player)
         return when (statName.lowercase()) {
             "힘" -> stat.strength
             "민첩" -> stat.dexterity

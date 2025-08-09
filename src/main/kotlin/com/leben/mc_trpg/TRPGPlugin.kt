@@ -12,13 +12,13 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.*
 import org.bukkit.Bukkit
 
-class Mc_trpg : JavaPlugin() {
+class TRPGPlugin : JavaPlugin() {
     private var embeddedServer: NettyApplicationEngine? = null
     private val pluginScope = CoroutineScope(Dispatchers.Default + Job())
 
     companion object {
         lateinit var statManager: StatManager
-        lateinit var instance: Mc_trpg
+        lateinit var instance: TRPGPlugin
     }
 
     override fun onEnable() {
@@ -52,7 +52,7 @@ class Mc_trpg : JavaPlugin() {
     fun sendDelayedMessages(messages: List<String>, delayMillis: Long) {
         pluginScope.launch {
             for (message in messages) {
-                withContext(Dispatchers.Main) {
+                withContext(BukkitMainDispatcher) {
                     Bukkit.broadcastMessage(message)
                 }
                 delay(delayMillis)
