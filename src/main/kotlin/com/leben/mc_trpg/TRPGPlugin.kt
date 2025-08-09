@@ -25,16 +25,16 @@ import org.bukkit.util.Vector
 
 class TRPGPlugin : JavaPlugin(), Listener {
     private var embeddedServer: NettyApplicationEngine? = null
-    private val pluginScope = CoroutineScope(Dispatchers.Default + Job())
+    private val pluginScope = CoroutineScope(Dispatchers.Default + Job()) //비동기를 위한 설정
 
     companion object {
         lateinit var statManager: StatManager
         lateinit var instance: TRPGPlugin
     }
 
-    override fun onEnable() {
+    override fun onEnable() { //플러그인이 활성화 되었을 때 실행
         instance = this
-        embeddedServer = embeddedServer(Netty, port = 8080) {
+        embeddedServer = embeddedServer(Netty, port = 8080) { //8080포트에서 웹서버 시작
             routing {
                 post("api/command") {
                     val payload = call.receiveText()
@@ -48,6 +48,7 @@ class TRPGPlugin : JavaPlugin(), Listener {
 
         statManager = StatManager(dataFolder)
 
+        //명령어 로드
         getCommand("주사위")?.setExecutor(DiceCommand())
         getCommand("판정")?.setExecutor(JudgmentCommand())
         getCommand("캐릭터생성")?.setExecutor(CharacterMakeCommand())
@@ -63,16 +64,16 @@ class TRPGPlugin : JavaPlugin(), Listener {
         statManager.saveStatInFile()
     }
 
-    fun sendDelayedMessages(messages: List<String>, delayMillis: Long) {
-        pluginScope.launch {
-            for (message in messages) {
-                withContext(BukkitMainDispatcher) {
-                    Bukkit.broadcastMessage(message)
-                }
-                delay(delayMillis)
-            }
-        }
-    }
+//    fun sendDelayedMessages(messages: List<String>, delayMillis: Long) {
+//        pluginScope.launch {
+//            for (message in messages) {
+//                withContext(BukkitMainDispatcher) {
+//                    Bukkit.broadcastMessage(message)
+//                }
+//                delay(delayMillis)
+//            }
+//        }
+//    }
 
     fun showJudgeDisplay(player: Player, messages: List<String>) {
 
@@ -80,9 +81,9 @@ class TRPGPlugin : JavaPlugin(), Listener {
         val world = player.world //플레이어가 접속해 있는 맵
         val formattedText = messages.joinToString("\n") //모든 메세지 합침
 
-        val direction = location.direction
-        val offset = direction.clone().multiply(1.5)
-        val displayLocation = location.add(offset).add(0.0, 0.5, 0.0)
+        val direction = location.direction //플레이어가 바라보고 있는 방향
+        val offset = direction.clone().multiply(1.5) //1.5 블록 앞에서 소환
+        val displayLocation = location.add(offset).add(0.0, 0.5, 0.0) //창 소환 위치
 
         val firstLineWithBracket = messages.firstOrNull { it.contains("]") }
         val estimatedWidth = if (firstLineWithBracket != null) {
@@ -92,18 +93,24 @@ class TRPGPlugin : JavaPlugin(), Listener {
             getEstimatedTextWidth(formattedText)
         }
 
+        val heightOffset = when (messages.size) {
+            7 -> 0.0
+            8 -> 0.3
+            9 -> 0.5
+            else -> 0.0
+        }
+
         val textDisplay = world.spawnEntity(displayLocation, EntityType.TEXT_DISPLAY) as TextDisplay
         textDisplay.text(Component.text(formattedText))
         textDisplay.setRotation(player.location.yaw + 180f, 0f)
 
         val rightDirection = Vector(-direction.z, 0.0, direction.x).normalize()
-        val buttonOffset = rightDirection.clone().multiply(estimatedWidth / 2.0 + 1.0)
+        val buttonOffset = rightDirection.clone().multiply(estimatedWidth / 2.0 + 1.1)
 
-        val closeButtonLocation = displayLocation.add(buttonOffset).add(0.0, 1.5, 0.0)
+        val closeButtonLocation = displayLocation.add(buttonOffset).add(0.0, 1.5 + heightOffset, 0.0)
         val closeButtonText = world.spawnEntity(closeButtonLocation, EntityType.TEXT_DISPLAY) as TextDisplay
         closeButtonText.text(Component.text("§c§lX"))
         closeButtonText.setRotation(player.location.yaw + 180f, 0f)
-        closeButtonText.isShadowed = true
 
         val interaction = world.spawnEntity(closeButtonLocation, EntityType.INTERACTION) as Interaction
         interaction.interactionWidth = 0.7f
@@ -145,7 +152,7 @@ class TRPGPlugin : JavaPlugin(), Listener {
         // 3. 닫기 버튼 생성
         val estimatedWidth = getEstimatedTextWidth(backgroundText)
         val rightDirection = Vector(-direction.z, 0.0, direction.x).normalize()
-        val buttonOffset = rightDirection.clone().multiply(estimatedWidth / 2.0 + 1.0)
+        val buttonOffset = rightDirection.clone().multiply(estimatedWidth / 2.0)
         val closeButtonLocation = windowCenterLocation.clone().add(buttonOffset).add(0.0, 1.5, 0.0)
 
         val closeButtonText = world.spawnEntity(closeButtonLocation, EntityType.TEXT_DISPLAY) as TextDisplay

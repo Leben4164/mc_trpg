@@ -10,7 +10,7 @@ class StatusWindowCommand : CommandExecutor {
         sender: CommandSender,
         command: Command,
         label: String,
-        args: Array<out String>?
+        args: Array<out String>
     ): Boolean {
         if (sender is Player) {
             val player = sender
@@ -21,9 +21,9 @@ class StatusWindowCommand : CommandExecutor {
                 "§l--- 상태창 ---",
                 "§6이름: §f${stats.playerName}",
                 "",
-                "§b체력: §f${stats.hp} §b마나: §f${stats.mp}",
+                "§b체력: §c${stats.hp} §b마나: §9${stats.mp}",
                 "",
-                "§a힘: §f${stats.strength} §재주: §f${stats.dexterity}",
+                "§a힘: §f${stats.strength} §a재주: §f${stats.dexterity}",
                 "§a지능: §f${stats.intelligence} §a행운: §f${stats.luck}"
             )
 
