@@ -48,7 +48,7 @@ class JudgmentCommand : CommandExecutor {
         // 주사위 굴리기
         val results = mutableListOf<Int>()
         var totalRollResult = 0
-        var finalResult = ""
+        var finalResult: String
         for (i in 1..count) {
             val roll = when (judgmentType) {
                 "백분율" -> {
@@ -62,15 +62,16 @@ class JudgmentCommand : CommandExecutor {
         }
 
         if (totalRollResult > playerStat) {
-            finalResult = "실패"
+            finalResult = "§c실패"
         } else {
             if (totalRollResult == 1) {
-                finalResult = "대성공"
+                finalResult = "§l§e대성공"
             } else {
-                finalResult = "성공"
+                finalResult = "§a성공"
             }
         }
         val messages = mutableListOf<String>()
+        messages.add("")
         messages.add("[§e${targetPlayer.name}§f 님의 $judgmentType 판정 시작!]")
         messages.add("§f - 주사위: §b$sides§f면체 주사위 §b$count§f개")
 
@@ -80,18 +81,16 @@ class JudgmentCommand : CommandExecutor {
 
         messages.add("§f - $statName : §a$playerStat")
         messages.add("§f - 주사위 총합: §b$totalRollResult")
-        messages.add("§f - 최종 결과: §e$finalResult")
-
-
+        messages.add("§f - 최종 결과: §f$finalResult")
 
         // 메인 클래스의 함수를 호출하여 메시지를 시간 간격을 두고 전송
-        TRPGPlugin.instance.sendDelayedMessages(messages, 1000L) // 1초 간격으로 메시지 전송
-
+        //TRPGPlugin.instance.sendDelayedMessages(messages, 1000L) // 1초 간격으로 메시지 전송
+        TRPGPlugin.instance.showJudgeDisplay(targetPlayer, messages)
 
         return true
     }
 
-    // 플레이어 스탯을 가져오는 더미 함수
+    // 플레이어 스탯을 가져오는 함수
     private fun getPlayerStat(player: org.bukkit.entity.Player, statName: String): Int? {
         val stat = TRPGPlugin.statManager.getStat(player)
         return when (statName.lowercase()) {

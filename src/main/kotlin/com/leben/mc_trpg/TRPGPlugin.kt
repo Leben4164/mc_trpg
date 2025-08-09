@@ -10,7 +10,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 import kotlinx.coroutines.*
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
+import org.bukkit.entity.EntityType
+import org.bukkit.entity.Player
+import org.bukkit.entity.TextDisplay
 
 class TRPGPlugin : JavaPlugin() {
     private var embeddedServer: NettyApplicationEngine? = null
@@ -58,5 +62,19 @@ class TRPGPlugin : JavaPlugin() {
                 delay(delayMillis)
             }
         }
+    }
+
+    fun showJudgeDisplay(player: Player, messages: List<String>) {
+
+        val location = player.location.add(0.0, 2.0, 0.0)
+        val world = player.world
+        val textDisplay = world.spawnEntity(location, EntityType.TEXT_DISPLAY) as TextDisplay
+
+        val formattedText = messages.joinToString("\n")
+        textDisplay.text(Component.text(formattedText))
+
+        Bukkit.getScheduler().runTaskLater(this, Runnable {
+            textDisplay.remove()
+        }, 20 * 10L)
     }
 }
