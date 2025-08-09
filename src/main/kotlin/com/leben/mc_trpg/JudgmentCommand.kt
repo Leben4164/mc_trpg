@@ -48,6 +48,7 @@ class JudgmentCommand : CommandExecutor {
         // 주사위 굴리기
         val results = mutableListOf<Int>()
         var totalRollResult = 0
+        var finalResult = ""
         for (i in 1..count) {
             val roll = when (judgmentType) {
                 "백분율" -> {
@@ -60,20 +61,28 @@ class JudgmentCommand : CommandExecutor {
             totalRollResult += roll
         }
 
-        val finalResult = totalRollResult + playerStat
-
-        // 여기에 코루틴을 활용한 지연 메시지 출력 로직 추가
+        if (totalRollResult > playerStat) {
+            finalResult = "실패"
+        } else {
+            if (totalRollResult == 1) {
+                finalResult = "대성공"
+            } else {
+                finalResult = "성공"
+            }
+        }
         val messages = mutableListOf<String>()
-        messages.add("§e${targetPlayer.name}§f 님의 $judgmentType 판정 시작!")
-        messages.add("§f - 주사위: §b$count§f개, 면: §b$sides§f짜리 주사위")
+        messages.add("[§e${targetPlayer.name}§f 님의 $judgmentType 판정 시작!]")
+        messages.add("§f - 주사위: §b$sides§f면체 주사위 §b$count§f개")
 
         results.forEachIndexed { index, roll ->
             messages.add("§f - ${index + 1}번째 굴린 값: §b$roll")
         }
 
-        messages.add("§f - $statName 스탯: §a$playerStat")
+        messages.add("§f - $statName : §a$playerStat")
         messages.add("§f - 주사위 총합: §b$totalRollResult")
         messages.add("§f - 최종 결과: §e$finalResult")
+
+
 
         // 메인 클래스의 함수를 호출하여 메시지를 시간 간격을 두고 전송
         TRPGPlugin.instance.sendDelayedMessages(messages, 1000L) // 1초 간격으로 메시지 전송
