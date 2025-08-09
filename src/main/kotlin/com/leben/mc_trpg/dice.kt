@@ -12,10 +12,10 @@ class dice : CommandExecutor {
             return false
         }
 
-        val parts = args[0].split("d")
+        val parts = args[0].split("D")
         val count = parts[0].toIntOrNull() ?: 1
         val sides = parts.getOrNull(1)?.toIntOrNull() ?: 6
-        var results = intArrayOf()
+        val results = mutableListOf<Int>()
         var total = 0
 
         for (i in 1..count) {
@@ -24,7 +24,9 @@ class dice : CommandExecutor {
             total += roll
         }
 
-        sender.sendMessage("주사위 결과")
-        for (i in 1..count) sender.sendMessage(results.toString())
+        sender.sendMessage("주사위 결과");
+        for (i in 1..count) sender.sendMessage("${i+1} 번째 주사위 : ${results[i]}")
+        sender.sendMessage("총합 : $total")
+        return true
     }
 }

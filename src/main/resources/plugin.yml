@@ -2,3 +2,8 @@ name: mc_trpg
 version: '1.0-SNAPSHOT'
 main: com.leben.mc_trpg.Mc_trpg
 api-version: '1.21'
+
+commands:
+  주사위:
+    description: 주사위를 굴립니다.
+    usage: /<command> <횟수>D<면>
