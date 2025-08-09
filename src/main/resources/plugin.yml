@@ -1,5 +1,5 @@
 name: mc_trpg
-version: '1.0-SNAPSHOT'
+version: '1.2'
 main: com.leben.mc_trpg.Mc_trpg
 api-version: '1.21'
 
@@ -7,3 +7,11 @@ commands:
   주사위:
     description: 주사위를 굴립니다.
     usage: /<command> <횟수>D<면>
+
+  판정:
+    description: 자동으로 판정을 진행합니다.
+    usage: /<command> <플레이어> <판정종류> <기준스텟>
+
+  캐릭터생성:
+    description: 캐릭터 스텟을 결정합니다.
+    usage: /<command>

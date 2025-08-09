@@ -9,11 +9,20 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
+import kotlinx.coroutines.*
+import org.bukkit.Bukkit
 
 class Mc_trpg : JavaPlugin() {
     private var embeddedServer: NettyApplicationEngine? = null
+    private val pluginScope = CoroutineScope(Dispatchers.Default + Job())
+
+    companion object {
+        lateinit var statManager: StatManager
+        lateinit var instance: Mc_trpg
+    }
 
     override fun onEnable() {
+        instance = this
         embeddedServer = embeddedServer(Netty, port = 8080) {
             routing {
                 post("api/command") {
@@ -25,10 +34,29 @@ class Mc_trpg : JavaPlugin() {
         }.start(wait = false)
 
         logger.info("웹 서버가 8080포트에서 시작되었습니다.")
+
+        statManager = StatManager(dataFolder)
+
+        getCommand("주사위")?.setExecutor(DiceCommand())
+        getCommand("판정")?.setExecutor(JudgmentCommand())
+        getCommand("캐릭터생성")?.setExecutor(CharacterMakeCommand())
+        logger.info("플러그인이 활성화되었습니다.")
     }
 
     override fun onDisable() {
         embeddedServer?.stop(1000, 1000)
         logger.info("웹 서버가 종료되었습니다.")
+        pluginScope.cancel()
+    }
+
+    fun sendDelayedMessages(messages: List<String>, delayMillis: Long) {
+        pluginScope.launch {
+            for (message in messages) {
+                withContext(Dispatchers.Main) {
+                    Bukkit.broadcastMessage(message)
+                }
+                delay(delayMillis)
+            }
+        }
     }
 }

@@ -2,10 +2,11 @@ plugins {
     kotlin("jvm") version "2.2.20-Beta2"
     id("com.gradleup.shadow") version "8.3.0"
     id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "com.leben"
-version = "1.0-SNAPSHOT"
+version = "1.2"
 
 repositories {
     mavenCentral()
@@ -23,6 +24,8 @@ dependencies {
     // JSON 직렬화를 위한 의존성
     implementation("io.ktor:ktor-serialization-gson:2.3.6")
     implementation("io.ktor:ktor-server-content-negotiation:2.3.6")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 }
 
 tasks {
