@@ -25,6 +25,7 @@ class CharacterMakeCommand : CommandExecutor {
             strength = Random.nextInt(3, 19),      // 3d6 주사위를 굴리는 효과
             dexterity = Random.nextInt(3, 19),
             intelligence = Random.nextInt(3, 19),
+            luck = Random.nextInt(3, 19),
             hp = Random.nextInt(15, 31),             // 기본 체력 무작위
             mp = Random.nextInt(10, 21),             // 기본 마나 무작위
         )
@@ -33,8 +34,9 @@ class CharacterMakeCommand : CommandExecutor {
         TRPGPlugin.statManager.saveStat(sender, playerStat)
 
         sender.sendMessage("§a[캐릭터 생성]§f 스탯이 무작위로 결정되었습니다!")
-        sender.sendMessage("§f힘: §e${playerStat.strength}, §f민첩: §e${playerStat.dexterity}, §f지능: §e${playerStat.intelligence}")
-        sender.sendMessage("§f체력: §c${playerStat.hp}, §f마나: §9${playerStat.mp}")
+        sender.sendMessage("§f체력: §c${playerStat.hp} §f마나: §9${playerStat.mp}")
+        sender.sendMessage("§f근력: §e${playerStat.strength} §f재주: §e${playerStat.dexterity}")
+        sender.sendMessage("§f지능: §e${playerStat.intelligence} §f행운: §e${playerStat.luck}")
 
         return true
     }
