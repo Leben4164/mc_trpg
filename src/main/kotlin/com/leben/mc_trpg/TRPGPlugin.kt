@@ -32,6 +32,8 @@ class TRPGPlugin : JavaPlugin(), Listener {
         lateinit var instance: TRPGPlugin
     }
 
+    val pendingQuestRequests = mutableMapOf<UUID, Quest>()
+
     override fun onEnable() { //플러그인이 활성화 되었을 때 실행
         instance = this
         embeddedServer = embeddedServer(Netty, port = 8080) { //8080포트에서 웹서버 시작
@@ -53,6 +55,7 @@ class TRPGPlugin : JavaPlugin(), Listener {
         getCommand("판정")?.setExecutor(JudgmentCommand())
         getCommand("캐릭터생성")?.setExecutor(CharacterMakeCommand())
         getCommand("상태창")?.setExecutor(StatusWindowCommand())
+        getCommand("퀘스트")?.setExecutor(QuestCommand())
         logger.info("플러그인이 활성화되었습니다.")
         server.pluginManager.registerEvents(this, this)
     }
@@ -63,17 +66,6 @@ class TRPGPlugin : JavaPlugin(), Listener {
         pluginScope.cancel()
         statManager.saveStatInFile()
     }
-
-//    fun sendDelayedMessages(messages: List<String>, delayMillis: Long) {
-//        pluginScope.launch {
-//            for (message in messages) {
-//                withContext(BukkitMainDispatcher) {
-//                    Bukkit.broadcastMessage(message)
-//                }
-//                delay(delayMillis)
-//            }
-//        }
-//    }
 
     fun showJudgeDisplay(player: Player, messages: List<String>) {
         val location = player.location //플레이어 위치
@@ -91,13 +83,13 @@ class TRPGPlugin : JavaPlugin(), Listener {
 
         pluginScope.launch {
             var currentText = ""
-            messages.forEach { line ->
-                if (currentText.isNotEmpty()) {
+            messages.forEachIndexed { index, line ->
+                if (index > 0) {
                     currentText += "\n"
                     withContext(BukkitMainDispatcher) {
                         textDisplay.text(Component.text(currentText))
                     }
-                    delay(50)
+                    delay(30)
                 }
 
                 line.forEach { char ->
@@ -105,7 +97,7 @@ class TRPGPlugin : JavaPlugin(), Listener {
                     withContext(BukkitMainDispatcher) {
                         textDisplay.text(Component.text(currentText))
                     }
-                    delay(50)
+                    delay(30)
                 }
             }
 
@@ -180,6 +172,59 @@ class TRPGPlugin : JavaPlugin(), Listener {
         interaction.interactionWidth = 1.0f
         interaction.interactionHeight = 1.0f
         interaction.addScoreboardTag("status-window-interaction-$uniqueId")
+    }
+
+    fun showQuestUI(player: Player, quest: Quest) {
+        val location = player.location
+        val world = player.world
+        val direction = location.direction
+
+        val offset = direction.clone().multiply(1.5)
+        val uiLocation = location.clone().add(offset).add(0.0, 1.8, 0.0)
+
+        pendingQuestRequests[quest.uniqueId] = quest
+
+        val messages = listOf(
+            "§l---퀘스트 요청---",
+            "§6요청자: §f${quest.requesterName}",
+            "",
+            "§6제목: §f${quest.title}",
+            "§6내용: §f${quest.description}",
+            "",
+            "§6보상: §f${quest.reward}"
+        )
+        val formattedText = messages.joinToString("\n")
+
+        val textDisplay = world.spawnEntity(uiLocation, EntityType.TEXT_DISPLAY) as TextDisplay
+        textDisplay.setRotation(player.location.yaw + 180f, 0f)
+        textDisplay.text(Component.text(formattedText))
+        textDisplay.addScoreboardTag("quest-request-${quest.uniqueId}")
+
+        // 수락 버튼과 거절 버튼 생성
+        val acceptButtonLocation = uiLocation.clone().add(-0.5, -0.8, 0.0) // 버튼 위치 조정
+        val declineButtonLocation = uiLocation.clone().add(0.5, -0.8, 0.0)
+
+        // 수락 버튼
+        val acceptButton = world.spawnEntity(acceptButtonLocation, EntityType.TEXT_DISPLAY) as TextDisplay
+        acceptButton.setRotation(player.location.yaw + 180f, 0f)
+        acceptButton.text(Component.text("§a[ 수락 ]"))
+        acceptButton.addScoreboardTag("quest-request-accept-${quest.uniqueId}")
+
+        val acceptInteraction = world.spawnEntity(acceptButtonLocation, EntityType.INTERACTION) as Interaction
+        acceptInteraction.interactionWidth = 1.0f
+        acceptInteraction.interactionHeight = 1.0f
+        acceptInteraction.addScoreboardTag("quest-request-accept-${quest.uniqueId}")
+
+        // 거절 버튼
+        val declineButton = world.spawnEntity(declineButtonLocation, EntityType.TEXT_DISPLAY) as TextDisplay
+        declineButton.setRotation(player.location.yaw + 180f, 0f)
+        declineButton.text(Component.text("§c[ 거절 ]"))
+        declineButton.addScoreboardTag("quest-request-decline-${quest.uniqueId}")
+
+        val declineInteraction = world.spawnEntity(declineButtonLocation, EntityType.INTERACTION) as Interaction
+        declineInteraction.interactionWidth = 1.0f
+        declineInteraction.interactionHeight = 1.0f
+        declineInteraction.addScoreboardTag("quest-request-decline-${quest.uniqueId}")
     }
 
     @EventHandler

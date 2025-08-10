@@ -1,5 +1,5 @@
 name: mc_trpg
-version: '1.1.8'
+version: '1.1.9'
 main: com.leben.mc_trpg.TRPGPlugin
 api-version: '1.21'
 
