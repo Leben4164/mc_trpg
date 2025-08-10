@@ -76,50 +76,74 @@ class TRPGPlugin : JavaPlugin(), Listener {
 //    }
 
     fun showJudgeDisplay(player: Player, messages: List<String>) {
-
         val location = player.location //플레이어 위치
         val world = player.world //플레이어가 접속해 있는 맵
-        val formattedText = messages.joinToString("\n") //모든 메세지 합침
 
         val direction = location.direction //플레이어가 바라보고 있는 방향
         val offset = direction.clone().multiply(1.5) //1.5 블록 앞에서 소환
         val displayLocation = location.add(offset).add(0.0, 0.5, 0.0) //창 소환 위치
 
-        val firstLineWithBracket = messages.firstOrNull { it.contains("]") }
-        val estimatedWidth = if (firstLineWithBracket != null) {
-            val trimmedText = firstLineWithBracket.substringBefore("]")
-            getEstimatedTextWidth(trimmedText)
-        } else {
-            getEstimatedTextWidth(formattedText)
-        }
-
-        val heightOffset = when (messages.size) {
-            7 -> 0.0
-            8 -> 0.3
-            9 -> 0.5
-            else -> 0.0
-        }
-
         val textDisplay = world.spawnEntity(displayLocation, EntityType.TEXT_DISPLAY) as TextDisplay
-        textDisplay.text(Component.text(formattedText))
         textDisplay.setRotation(player.location.yaw + 180f, 0f)
-
-        val rightDirection = Vector(-direction.z, 0.0, direction.x).normalize()
-        val buttonOffset = rightDirection.clone().multiply(estimatedWidth / 2.0 + 1.1)
-
-        val closeButtonLocation = displayLocation.add(buttonOffset).add(0.0, 1.5 + heightOffset, 0.0)
-        val closeButtonText = world.spawnEntity(closeButtonLocation, EntityType.TEXT_DISPLAY) as TextDisplay
-        closeButtonText.text(Component.text("§c§lX"))
-        closeButtonText.setRotation(player.location.yaw + 180f, 0f)
-
-        val interaction = world.spawnEntity(closeButtonLocation, EntityType.INTERACTION) as Interaction
-        interaction.interactionWidth = 0.7f
-        interaction.interactionHeight = 0.7f
 
         val uniqueId = UUID.randomUUID()
         textDisplay.addScoreboardTag("judgment-$uniqueId")
-        closeButtonText.addScoreboardTag("judgment-$uniqueId")
-        interaction.addScoreboardTag("judgment-interaction-$uniqueId")
+
+        pluginScope.launch {
+            var currentText = ""
+            messages.forEach { line ->
+                if (currentText.isNotEmpty()) {
+                    currentText += "\n"
+                    withContext(BukkitMainDispatcher) {
+                        textDisplay.text(Component.text(currentText))
+                    }
+                    delay(50)
+                }
+
+                line.forEach { char ->
+                    currentText += char
+                    withContext(BukkitMainDispatcher) {
+                        textDisplay.text(Component.text(currentText))
+                    }
+                    delay(50)
+                }
+            }
+
+
+            withContext(BukkitMainDispatcher) {
+                val formattedText = messages.joinToString("\n") //모든 메세지 합침
+
+                val firstLineWithBracket = messages.firstOrNull { it.contains("]") }
+                val estimatedWidth = if (firstLineWithBracket != null) {
+                    val trimmedText = firstLineWithBracket.substringBefore("]")
+                    getEstimatedTextWidth(trimmedText)
+                } else {
+                    getEstimatedTextWidth(formattedText)
+                }
+
+                val heightOffset = when (messages.size) {
+                    7 -> 0.0
+                    8 -> 0.3
+                    9 -> 0.5
+                    else -> 0.0
+                }
+
+                val rightDirection = Vector(-direction.z, 0.0, direction.x).normalize()
+                val buttonOffset = rightDirection.clone().multiply(estimatedWidth / 2.0 + 1.1)
+
+                val closeButtonLocation = displayLocation.add(buttonOffset).add(0.0, 1.5 + heightOffset, 0.0)
+                val closeButtonText = world.spawnEntity(closeButtonLocation, EntityType.TEXT_DISPLAY) as TextDisplay
+                closeButtonText.text(Component.text("§c§lX"))
+                closeButtonText.setRotation(player.location.yaw + 180f, 0f)
+                closeButtonText.addScoreboardTag("judgment-$uniqueId")
+
+                val interaction = world.spawnEntity(closeButtonLocation, EntityType.INTERACTION) as Interaction
+                interaction.interactionWidth = 0.7f
+                interaction.interactionHeight = 0.7f
+                interaction.addScoreboardTag("judgment-interaction-$uniqueId")
+            }
+        }
+
     }
 
     fun showStatusWindow(player: Player, messages: List<String>) {
@@ -134,14 +158,6 @@ class TRPGPlugin : JavaPlugin(), Listener {
         val uniqueId = UUID.randomUUID()
         val playerYawDegrees = location.yaw
 
-        // 1. 상태창 배경 생성
-        val backgroundText = "§0§l" + " ".repeat(40)
-        val backgroundDisplay = world.spawnEntity(windowCenterLocation, EntityType.TEXT_DISPLAY) as TextDisplay
-        backgroundDisplay.text(Component.text(backgroundText))
-        backgroundDisplay.setRotation(playerYawDegrees + 180f, 0f)
-        backgroundDisplay.isShadowed = true
-        backgroundDisplay.addScoreboardTag("status-window-$uniqueId")
-
         // 2. 상태창 내용 생성
         val contentLocation = windowCenterLocation.clone().add(0.0, 0.2, 0.0)
         val contentDisplay = world.spawnEntity(contentLocation, EntityType.TEXT_DISPLAY) as TextDisplay
@@ -150,9 +166,8 @@ class TRPGPlugin : JavaPlugin(), Listener {
         contentDisplay.addScoreboardTag("status-window-$uniqueId")
 
         // 3. 닫기 버튼 생성
-        val estimatedWidth = getEstimatedTextWidth(backgroundText)
         val rightDirection = Vector(-direction.z, 0.0, direction.x).normalize()
-        val buttonOffset = rightDirection.clone().multiply(estimatedWidth / 2.0)
+        val buttonOffset = rightDirection.clone().multiply(4.0)
         val closeButtonLocation = windowCenterLocation.clone().add(buttonOffset).add(0.0, 1.5, 0.0)
 
         val closeButtonText = world.spawnEntity(closeButtonLocation, EntityType.TEXT_DISPLAY) as TextDisplay
@@ -160,12 +175,6 @@ class TRPGPlugin : JavaPlugin(), Listener {
         closeButtonText.setRotation(playerYawDegrees + 180f, 0f)
         closeButtonText.isShadowed = true
         closeButtonText.addScoreboardTag("status-window-$uniqueId")
-
-        val secondCloseButtonText = world.spawnEntity(closeButtonLocation, EntityType.TEXT_DISPLAY) as TextDisplay
-        secondCloseButtonText.text(Component.text("§c§lX"))
-        secondCloseButtonText.setRotation(playerYawDegrees, 0f)
-        secondCloseButtonText.isShadowed = true
-        secondCloseButtonText.addScoreboardTag("status-window-$uniqueId")
 
         val interaction = world.spawnEntity(closeButtonLocation, EntityType.INTERACTION) as Interaction
         interaction.interactionWidth = 1.0f
